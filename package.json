@@ -1,0 +1,33 @@
+{
+  "name": "vsc-travis-ci-status",
+  "description": "Check your project&#39;s Travis CI status from Visual Studio Code",
+  "version": "0.0.1",
+  "publisher": "Felix Rieseberg",
+  "engines": {
+    "vscode": "^0.10.0"
+  },
+  "activationEvents": [
+    "onCommand:extension.updateTravis",
+    "workspaceContains:.travis.yml"
+  ],
+  "main": "./out/extension",
+  "contributes": {
+    "commands": [
+      {
+        "command": "extension.updateTravis",
+        "title": "Travis CI: Update Status"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "node ./node_modules/vscode/bin/compile",
+    "compile": "node ./node_modules/vscode/bin/compile -watch -p ./"
+  },
+  "devDependencies": {
+    "vscode": "next"
+  },
+  "dependencies": {
+    "ini": "^1.3.4",
+    "travis-ci": "^2.0.3"
+  }
+}
