@@ -1,4 +1,4 @@
-import {window, commands, StatusBarAlignment, StatusBarItem, workspace} from 'vscode';
+import {window, commands, StatusBarAlignment, StatusBarItem, workspace, extensions} from 'vscode';
 import path = require('path');
 import fs = require('fs');
 var Travis = require('travis-ci');
@@ -10,19 +10,24 @@ export default class TravisStatusIndicator {
 	public updateStatus() : void {
 		if (!this._statusBarItem) {
 			this._statusBarItem = window.createStatusBarItem(StatusBarAlignment.Left);
+			this._statusBarItem.command = 'extension.updateTravis';
 		}
+		
+		// Mark statusBarItem as 'loading'
+		this._statusBarItem.text = 'Travis CI $(icon octicon-sync)';
+		this._statusBarItem.tooltip = 'Fetching Travis CI status for this project...'
 		
 		if (this.isTravisProject()) {
 			let repo = this.getUserRepo();
 			
 			// Display Message Box if not actually a Travis
-			if (!repo || repo.length < 2) {
+			if (!repo || repo.length < 2 || repo[0].length === 0 || repo[1].length === 0) {
 				this.displayError('Fetching Travis CI build status failed: Could not detect username and repository');
 			}
 			
 			// Let's attempt getting a build status from Travis
 			this._travis.repos(repo[0], repo[1]).get((err, res) => {
-				if (err) return this.displayError(err);
+				if (err) return this.displayError(`Travis could not find ${repo[0]}/${repo[1]}`);
 				if (!res || !res.repo) return this.displayError('Travis CI could not find your repository.');
 				if (res.repo.last_build_number === null) return this.displayError('Travis found your repository, but it never ran a test.');
 				
@@ -92,25 +97,14 @@ export default class TravisStatusIndicator {
 	public getUserRepo() : Array<String> {
 		if (!workspace || !workspace.rootPath) return null;
 		
-		let ini = require('ini');
-		let configFile = path.join(workspace.rootPath, '.git', 'config');
-			
-		try
-		{
-			let config = ini.parse(fs.readFileSync(configFile, 'utf-8'));
-			let origin = config['remote "origin"']
-			
-			if (origin && origin.url) {
-				// Parse URL, get GitHub username
-				let repo = origin.url.replace(/^.*\/\/[^\/]+\//, '');
-				let combo = repo.replace(/(\.git)/, '');
-				return combo.split('/');
-			}
-		}
-		catch (err)
-		{
-			return null;
-		}
+		let fSettings = this.getUserRepoFromSettings();
+		let fTravis = this.getUserRepoFromTravis();
+		
+		// Quick sanity check
+		let user = (fSettings && fSettings.length > 0 && fSettings[0]) ? fSettings[0] : fTravis[0];
+		let repo = (fSettings && fSettings.length > 1 && fSettings[1]) ? fSettings[1] : fTravis[1];
+		
+		return [user, repo];
 	}
 	
 	// Setup status bar item to display that this plugin is in trouble
@@ -143,4 +137,59 @@ export default class TravisStatusIndicator {
 		this._statusBarItem.tooltip = tooltip;
 		this._statusBarItem.show();
 	}
+	
+	// Get the username/repository combo from .vscode/settings.json
+	private getUserRepoFromSettings() : Array<String> {
+		if (!workspace || !workspace.rootPath) return null;
+		
+		let settingsFile = path.join(workspace.rootPath, '.vscode', 'settings.json');
+		
+		try {
+			let settings = JSON.parse(fs.readFileSync(settingsFile, 'utf8'));
+			
+			if (settings) {
+				let repo = settings['travis.repository'];
+				let user = settings['travis.username'];
+				
+				return [user, repo];
+			} else {
+				return ['', ''];
+			}
+		} catch (e) {
+			return ['', ''];	
+		}	
+	}
+	
+	// Get the username/repository combo from .travis.yml
+	private getUserRepoFromTravis() : Array<String> {
+		let ini = require('ini');
+		let configFile = path.join(workspace.rootPath, '.git', 'config');
+			
+		try
+		{
+			let config = ini.parse(fs.readFileSync(configFile, 'utf-8'));
+			let origin = config['remote "origin"']
+			
+			if (origin && origin.url) {
+				// Parse URL, get GitHub username
+				let repo = origin.url.replace(/^.*\/\/[^\/]+\//, '');
+				let combo = repo.replace(/(\.git)/, '');
+				let split = combo.split('/');
+				
+				if (split && split.length > 1) {
+					return split;
+				} else {
+					return ['', ''];
+				}
+			}
+		}
+		catch (err)
+		{
+			return ['', ''];
+		}
+	}
+	
+	dispose() {
+        this._statusBarItem.dispose();
+    }
 }

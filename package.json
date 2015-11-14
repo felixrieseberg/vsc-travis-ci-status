@@ -22,7 +22,23 @@
         "command": "extension.openInTravis",
         "title": "Travis CI: Open Project on Travis CI"
       }
-    ]
+    ],
+    "configuration": {
+        "title": "Travis CI Project Settings",
+        "type": "object",
+        "properties": {
+            "travis.username": {
+                "type": "string",
+                "default": "",
+                "description": "Travis username for the project"
+            },
+            "travis.repository": {
+                "type": "string",
+                "default": "",
+                "description": "Travis repository name for the project"
+            }
+        }
+    }
   },
   "scripts": {
     "vscode:prepublish": "node ./node_modules/vscode/bin/compile",
