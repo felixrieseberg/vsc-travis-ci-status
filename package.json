@@ -3,11 +3,14 @@
   "displayName": "Travis CI Status",
   "description": "Check your project's Travis CI status from Visual Studio Code",
   "version": "0.1.0",
-  "publisher": "Felix Rieseberg",
+  "publisher": "felixrieseberg",
   "engines": {
     "vscode": "^0.10.0"
   },
-  "categories": ["Other"],
+  "license": "MIT",
+  "categories": [
+    "Other"
+  ],
   "keywords": [
     "Travis",
     "Travis CI",
@@ -24,6 +27,14 @@
     "onCommand:extension.openInTravis",
     "workspaceContains:.travis.yml"
   ],
+  "bugs": {
+    "url": "https://github.com/felixrieseberg/vsce-travis-ci-status/issues"
+  },
+  "homepage": "https://github.com/felixrieseberg/vsce-travis-ci-status/blob/master/README.md",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/felixrieseberg/vsce-travis-ci-status.git"
+  },
   "main": "./out/extension",
   "contributes": {
     "commands": [
@@ -37,20 +48,20 @@
       }
     ],
     "configuration": {
-        "title": "Travis CI Project Settings",
-        "type": "object",
-        "properties": {
-            "travis.username": {
-                "type": "string",
-                "default": "",
-                "description": "Travis username for the project"
-            },
-            "travis.repository": {
-                "type": "string",
-                "default": "",
-                "description": "Travis repository name for the project"
-            }
+      "title": "Travis CI Project Settings",
+      "type": "object",
+      "properties": {
+        "travis.username": {
+          "type": "string",
+          "default": "",
+          "description": "Travis username for the project"
+        },
+        "travis.repository": {
+          "type": "string",
+          "default": "",
+          "description": "Travis repository name for the project"
         }
+      }
     }
   },
   "scripts": {
@@ -58,6 +69,7 @@
     "compile": "tsc && node ./node_modules/vscode/bin/compile -watch -p ./"
   },
   "devDependencies": {
+    "typescript": "^1.6.2",
     "vscode": "next"
   },
   "dependencies": {
