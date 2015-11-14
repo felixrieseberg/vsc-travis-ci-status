@@ -1,7 +1,7 @@
 ## Travis CI Extension for Visual Studio Code
 Check the Travis CI build status of your project right in Visual Studio Code! This extension displays a small status indicator in the status bar.
 
-![Screenshot](https://raw.githubusercontent.com/felixrieseberg/vsce-travis-ci-status/master/screen.png)
+![Screenshot](screen.png)
 
 It comes with two commands: `Update Status` and `Open in Travis`. It is enabled automatically if a `.travis.yml` is present in your project.
 
