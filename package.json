@@ -2,7 +2,7 @@
   "name": "vsc-travis-ci-status",
   "displayName": "Travis CI Status",
   "description": "Check your project's Travis CI status from Visual Studio Code",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "publisher": "felixrieseberg",
   "engines": {
     "vscode": "^0.10.0"
@@ -28,12 +28,12 @@
     "workspaceContains:.travis.yml"
   ],
   "bugs": {
-    "url": "https://github.com/felixrieseberg/vsce-travis-ci-status/issues"
+    "url": "https://github.com/felixrieseberg/vsc-travis-ci-status/issues"
   },
-  "homepage": "https://github.com/felixrieseberg/vsce-travis-ci-status/blob/master/README.md",
+  "homepage": "https://github.com/felixrieseberg/vsc-travis-ci-status/blob/master/README.md",
   "repository": {
     "type": "git",
-    "url": "https://github.com/felixrieseberg/vsce-travis-ci-status.git"
+    "url": "https://github.com/felixrieseberg/vsc-travis-ci-status.git"
   },
   "main": "./out/extension",
   "contributes": {
