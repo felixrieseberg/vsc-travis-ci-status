@@ -1,7 +1,7 @@
 import {window, commands, workspace} from 'vscode';
 import TravisStatusIndicator from './travis-status';
 
-var indicator, proxySetup;
+var indicator, proxySetup, proxyData;
 
 export function activate() { 
 	// Create File System Watcher
@@ -38,18 +38,19 @@ function setupProxy() {
 	if (process.env && process.env.http_proxy) {
 		// Seems like we have a proxy
 		let match = process.env.http_proxy.match(/^(http:\/\/)?([^:\/]+)(:([0-9]+))?/i);
+		let proxyData = { host: null, port: null };
 		
 		if (match && match.length >= 3) {
-			this._proxyData.host = match[2];
-			this._proxyData.port = match[4] != null ? match[4] : 80;
+			proxyData.host = match[2];
+			proxyData.port = match[4] != null ? match[4] : 80;
 		}
 		
-		if (this._proxyData.host && this._proxyData.port) {
+		if (proxyData.host && proxyData.port) {
 			var globalTunnel = require('global-tunnel');
 
 			globalTunnel.initialize({
-				host: this._proxyData.host,
-				port: this._proxyData.port
+				host: proxyData.host,
+				port: proxyData.port
 			});	
 		} else {
 			// We have trouble getting ifnormation form the global http_proxy env variable
