@@ -1,11 +1,14 @@
 import {window, commands, StatusBarAlignment, StatusBarItem, workspace, extensions} from 'vscode';
 import path = require('path');
 import fs = require('fs');
+
 var Travis = require('travis-ci');
 
 export default class TravisStatusIndicator {
-	private _travis = new Travis({ version: '2.0.0' });
+	private _travis = new Travis({ version: '2.0.0' });;
 	private _statusBarItem: StatusBarItem;
+	private _useProxy : boolean = false;
+	private _proxyData = { host: null, port: null};
 	
 	public updateStatus() : void {
 		if (!this._statusBarItem) {
