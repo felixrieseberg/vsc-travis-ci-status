@@ -17,7 +17,7 @@ export default class TravisStatusIndicator {
 		}
 		
 		// Mark statusBarItem as 'loading'
-		this._statusBarItem.text = 'Travis CI $(icon octicon-sync)';
+		this._statusBarItem.text = 'Travis CI $(sync)';
 		this._statusBarItem.tooltip = 'Fetching Travis CI status for this project...'
 		
 		if (this.isTravisProject()) {
@@ -112,22 +112,22 @@ export default class TravisStatusIndicator {
 	
 	// Setup status bar item to display that this plugin is in trouble
 	private displayError(err : string) : void {
-		this.setupStatusBarItem(err, 'octicon-stop');
+		this.setupStatusBarItem(err, 'stop');
 	}
 	
 	// Setup status bar item to display that the build has passed;
 	private displaySuccess(text : string) : void {
-		this.setupStatusBarItem(text, 'octicon-check');
+		this.setupStatusBarItem(text, 'check');
 	}
 	
 	// Setup status bar item to display that the build has failed;
 	private displayFailure(text : string) : void {
-		this.setupStatusBarItem(text, 'octicon-x');
+		this.setupStatusBarItem(text, 'x');
 	}
 	
 	// Setup status bar item to display that the build is running;
 	private displayRunning(text : string) : void {
-		this.setupStatusBarItem(text, 'octicon-clock');
+		this.setupStatusBarItem(text, 'clock');
 	}
 	
 	// Setup StatusBarItem with an icon and a tooltip
@@ -136,7 +136,7 @@ export default class TravisStatusIndicator {
 			this._statusBarItem = window.createStatusBarItem(StatusBarAlignment.Left);
 		}
 		
-		this._statusBarItem.text = 'Travis CI $(icon ' + icon + ')';
+		this._statusBarItem.text = `Travis CI $(${icon})`;
 		this._statusBarItem.tooltip = tooltip;
 		this._statusBarItem.show();
 	}
