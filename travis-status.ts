@@ -3,9 +3,10 @@ import path = require('path');
 import fs = require('fs');
 
 var Travis = require('travis-ci');
+var Git = require('git-rev-2');
 
 export default class TravisStatusIndicator {
-	private _travis = new Travis({ version: '2.0.0' });;
+	private _travis = new Travis({ version: '2.0.0' });
 	private _statusBarItem: StatusBarItem;
 	private _useProxy : boolean = false;
 	private _proxyData = { host: null, port: null};
@@ -21,53 +22,64 @@ export default class TravisStatusIndicator {
 		this._statusBarItem.tooltip = 'Fetching Travis CI status for this project...'
 		
 		if (this.isTravisProject()) {
-			let repo = this.getUserRepo();
+			let userRepo = this.getUserRepo();
 			
 			// Display Message Box if not actually a Travis
-			if (!repo || repo.length < 2 || repo[0].length === 0 || repo[1].length === 0) {
+			if (!userRepo || userRepo.length < 2 || userRepo[0].length === 0 || userRepo[1].length === 0) {
 				this.displayError('Fetching Travis CI build status failed: Could not detect username and repository');
 			}
-			
-			// Let's attempt getting a build status from Travis
-			this._travis.repos(repo[0], repo[1]).get((err, res) => {
-				if (err) return this.displayError(`Travis could not find ${repo[0]}/${repo[1]}`);
-				if (!res || !res.repo) return this.displayError('Travis CI could not find your repository.');
-				if (res.repo.last_build_number === null) return this.displayError('Travis found your repository, but it never ran a test.');
-				
-				let started = new Date(res.repo.last_build_started_at);
-				let duration = Math.round(res.repo.last_build_duration / 60).toString();
-					duration += (duration === '1') ? ' minute' : ' minutes';
-				
-				// Build passed
-				if (res.repo.last_build_state === 'passed') {
-					let text = 'Build ' + res.repo.last_build_number + ' has passed.\n';
-						text += 'Started: ' + started.toLocaleDateString() + '\n';
-						text += 'Duration: ' + duration;
-					
-					return this.displaySuccess(text);
-				}
-				
-				// Build is running
-				if (res.repo.last_build_state === 'running') {
-					let text = 'Build ' + res.repo.last_build_number + ' is currently running.\n';
-						text += 'Started: ' + started.toLocaleDateString() + '\n';
-						text += 'Duration: ' + duration;
-					
-					return this.displayRunning(text);
-				}
-				
-				// Build has failed
-				if (res.repo.last_build_state === 'failed') {
-					let text = 'Build ' + res.repo.last_build_number + ' failed.\n';
-						text += 'Started: ' + started.toLocaleDateString() + '\n';
-						text += 'Duration: ' + duration;
-					
-					return this.displayFailure(text);
-				}
+			let [username, repoName] = userRepo;
+
+			//Get active branch
+			Git.branch(workspace.rootPath, (err1, currentActiveBranch: string) => {
+				//Get head commit hash
+				Git.long(workspace.rootPath, (err2, currentCommitSha: string) => {
+					// Let's attempt getting a build status from Travis
+					this._travis.repos(username, repoName).branches(currentActiveBranch).get( (branchError, branchResponse) => {
+						if (!branchError && branchResponse.commit.sha === currentCommitSha) {
+							let started: Date = new Date(branchResponse.branch.started_at);
+							let state: string = branchResponse.branch.state;
+							let buildNumber: number = branchResponse.branch.number;
+							let durationInSeconds: number = branchResponse.branch.duration;
+
+							this.show(durationInSeconds, state, buildNumber, started, currentCommitSha.substr(0, 7));
+						} else {
+							this._travis.repos(username, repoName).get((repoError, repoResponse) => {
+								if (repoError) return this.displayError(`Travis could not find ${userRepo[0]}/${userRepo[1]}`);
+								if (!repoResponse || !repoResponse.repo) return this.displayError('Travis CI could not find your repository.');
+								if (repoResponse.repo.last_build_number === null) return this.displayError('Travis found your repository, but it never ran a test.');
+
+								let started: Date = new Date(repoResponse.repo.last_build_started_at);
+								let state: string = repoResponse.repo.last_build_state;
+								let buildNumber: number = repoResponse.repo.last_build_number;
+								let durationInSeconds: number = repoResponse.repo.last_build_duration;
+
+								this.show(durationInSeconds, state, buildNumber, started, 'master');
+							});
+						}
+					});
+				});
 			});
 		}
 	}
-	
+
+	private show(buildDuration: number, state: string, buildNumber: number, started: Date, identifier?:string ) {
+		let duration = Math.round(buildDuration / 60).toString();
+		duration += (duration === '1') ? ' minute' : ' minutes';
+		let timeInfo:string = `Started: ${started.toLocaleDateString()}\nDuration: ${duration}`
+
+		switch(state) {
+			case 'passed':
+				return this.displaySuccess(`Build ${buildNumber} has passed.\n${timeInfo}`, identifier );
+			case 'running':
+				return this.displayRunning(`Build ${buildNumber} is currently running.\n${timeInfo}`, identifier);
+			case 'failed':
+				return this.displayFailure(`Build ${buildNumber} failed.\n${timeInfo}`, identifier);
+			default:
+				throw "Unsupported build state";
+		}
+	}
+
 	// Opens the current project on Travis
 	public openInTravis() : void {
 		if (!workspace || !workspace.rootPath || !this.isTravisProject()) return;
@@ -111,32 +123,32 @@ export default class TravisStatusIndicator {
 	}
 	
 	// Setup status bar item to display that this plugin is in trouble
-	private displayError(err : string) : void {
-		this.setupStatusBarItem(err, 'stop');
+	private displayError(err : string, identifier?: string) : void {
+		this.setupStatusBarItem(err, 'stop', identifier);
 	}
 	
 	// Setup status bar item to display that the build has passed;
-	private displaySuccess(text : string) : void {
-		this.setupStatusBarItem(text, 'check');
+	private displaySuccess(text : string, identifier?: string) : void {
+		this.setupStatusBarItem(text, 'check', identifier);
 	}
 	
 	// Setup status bar item to display that the build has failed;
-	private displayFailure(text : string) : void {
-		this.setupStatusBarItem(text, 'x');
+	private displayFailure(text : string, identifier?: string) : void {
+		this.setupStatusBarItem(text, 'x', identifier);
 	}
 	
 	// Setup status bar item to display that the build is running;
-	private displayRunning(text : string) : void {
-		this.setupStatusBarItem(text, 'clock');
+	private displayRunning(text : string, identifier?: string) : void {
+		this.setupStatusBarItem(text, 'clock', identifier);
 	}
 	
 	// Setup StatusBarItem with an icon and a tooltip
-	private setupStatusBarItem(tooltip : string, icon : string) : void {
+	private setupStatusBarItem(tooltip : string, icon : string, identifier?: string) : void {
 		if (!this._statusBarItem) {
 			this._statusBarItem = window.createStatusBarItem(StatusBarAlignment.Left);
 		}
 		
-		this._statusBarItem.text = `Travis CI $(${icon})`;
+		this._statusBarItem.text = identifier? `Travis CI ${identifier} $(${icon})`:`Travis CI $(${icon})`;
 		this._statusBarItem.tooltip = tooltip;
 		this._statusBarItem.show();
 	}
