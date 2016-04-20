@@ -5,7 +5,7 @@
   "version": "0.1.8",
   "publisher": "felixrieseberg",
   "engines": {
-    "vscode": "^0.10.0"
+    "vscode": "^1.0.0"
   },
   "license": "MIT",
   "categories": [
@@ -71,7 +71,7 @@
   },
   "devDependencies": {
     "typescript": "^1.6.2",
-    "vscode": "latest"
+    "vscode": "^0.11.10"
   },
   "dependencies": {
     "git-rev-2": "latest",
