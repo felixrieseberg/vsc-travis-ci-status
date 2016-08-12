@@ -60,6 +60,27 @@
           "type": "string",
           "default": "",
           "description": "Travis repository name for the project"
+        },
+        "travis.pro": {
+          "type": "boolean",
+          "default": false,
+          "description": "Travis use pro or community"
+        },
+        "travis.github_oauth_token": {
+          "type": "string",
+          "default": "",
+          "description": "Travis pro github token for authentication"
+        },
+        "travis.github_user": {
+          "type": "string",
+          "default": "",
+          "description": "Travis pro github user for authentication"
+        }
+        ,
+        "travis.github_password": {
+          "type": "string",
+          "default": "",
+          "description": "Travis pro github password for authentication"
         }
       }
     }

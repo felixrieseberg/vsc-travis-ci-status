@@ -6,7 +6,7 @@ var Travis = require('travis-ci');
 var Git = require('git-rev-2');
 
 export default class TravisStatusIndicator {
-	private _travis = new Travis({ version: '2.0.0' });
+	private _travis;
 	private _statusBarItem: StatusBarItem;
 	private _useProxy : boolean = false;
 	private _proxyData = { host: null, port: null};
@@ -35,7 +35,7 @@ export default class TravisStatusIndicator {
 				//Get head commit hash
 				Git.long(workspace.rootPath, (err2, currentCommitSha: string) => {
 					// Let's attempt getting a build status from Travis
-					this._travis.repos(username, repoName).branches(currentActiveBranch).get( (branchError, branchResponse) => {
+					this.getTeravis().repos(username, repoName).branches(currentActiveBranch).get( (branchError, branchResponse) => {
 						if (!branchError && branchResponse.commit.sha === currentCommitSha) {
 							let started: Date = new Date(branchResponse.branch.started_at);
 							let state: string = branchResponse.branch.state;
@@ -44,7 +44,7 @@ export default class TravisStatusIndicator {
 
 							this.show(durationInSeconds, state, buildNumber, started, currentCommitSha.substr(0, 7));
 						} else {
-							this._travis.repos(username, repoName).get((repoError, repoResponse) => {
+							this.getTeravis().repos(username, repoName).get((repoError, repoResponse) => {
 								if (repoError) return this.displayError(`Travis could not find ${userRepo[0]}/${userRepo[1]}`);
 								if (!repoResponse || !repoResponse.repo) return this.displayError('Travis CI could not find your repository.');
 								if (repoResponse.repo.last_build_number === null) return this.displayError('Travis found your repository, but it never ran a test.');
@@ -86,9 +86,14 @@ export default class TravisStatusIndicator {
 		
 		let open = require('open');
 		let repo = this.getUserRepo();
-		
+		let base = "https://travis-ci"
+		if (workspace.getConfiguration('travis')['pro']) {
+			base += '.com/'
+		} else {
+			base += '.org/'
+		}
 		if (repo && repo.length === 2) {
-			return open(`https://travis-ci.org/${repo[0]}/${repo[1]}`);
+			return open(`${base}${repo[0]}/${repo[1]}`);
 		}
 	}
 	
@@ -203,7 +208,33 @@ export default class TravisStatusIndicator {
 			return ['', ''];
 		}
 	}
-	
+
+	private getTeravis(): any {
+		if (this._travis == null) {
+			this._travis = Travis.new({
+				version: '2.0.0',
+				pro: workspace.getConfiguration('travis')['pro']
+			})
+		}
+		// Make sure that we have github token or basic credentials
+		if (workspace.getConfiguration('travis')['github_oauth_token'] != "") {
+			this._travis.authenticate({
+				github_token: workspace.getConfiguration('travis')['github_oauth_token']
+			}, function (err) {
+				// we've authenticated!
+			});
+		} else if (workspace.getConfiguration('travis')['github_user'] != "" && workspace.getConfiguration('travis')['github_password'] != "") {
+			this._travis.authenticate({
+				username: workspace.getConfiguration('travis')['github_user'],
+				password: workspace.getConfiguration('travis')['github_password']
+			}, function (err) {
+				//we've authenticated!
+			});
+		}
+			
+		return this._travis
+	}
+
 	dispose() {
         this._statusBarItem.dispose();
     }
