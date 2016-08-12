@@ -2,7 +2,7 @@
   "name": "vsc-travis-ci-status",
   "displayName": "Travis CI Status",
   "description": "Check your project's Travis CI status from Visual Studio Code",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "publisher": "felixrieseberg",
   "engines": {
     "vscode": "^1.0.0"
@@ -75,8 +75,7 @@
           "type": "string",
           "default": "",
           "description": "Travis pro github user for authentication"
-        }
-        ,
+        },
         "travis.github_password": {
           "type": "string",
           "default": "",
