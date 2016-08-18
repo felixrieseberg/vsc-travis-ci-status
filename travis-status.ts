@@ -70,13 +70,16 @@ export default class TravisStatusIndicator {
 
 		switch(state) {
 			case 'passed':
-				return this.displaySuccess(`Build ${buildNumber} has passed.\n${timeInfo}`, identifier );
+				return this.displaySuccess(`Build ${buildNumber} has passed.\n${timeInfo}`, identifier);
+			case 'started':
+				return this.displayRunning(`Build ${buildNumber} has started.\n${timeInfo}`, identifier);
 			case 'running':
 				return this.displayRunning(`Build ${buildNumber} is currently running.\n${timeInfo}`, identifier);
 			case 'failed':
 				return this.displayFailure(`Build ${buildNumber} failed.\n${timeInfo}`, identifier);
 			default:
-				throw "Unsupported build state";
+				// Don't throw, but instead try to display something.
+				return this.displayRunning(`Build ${buildNumber} has ${state}. \n${timeInfo}`, identifier);
 		}
 	}
 
