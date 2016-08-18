@@ -2,7 +2,7 @@
   "name": "vsc-travis-ci-status",
   "displayName": "Travis CI Status",
   "description": "Check your project's Travis CI status from Visual Studio Code",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "publisher": "felixrieseberg",
   "engines": {
     "vscode": "^1.0.0"
