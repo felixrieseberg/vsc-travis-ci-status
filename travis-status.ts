@@ -196,7 +196,7 @@ export default class TravisStatusIndicator {
 			if (origin && origin.url) {
 				// Parse URL, get GitHub username
 				let repo = origin.url.replace(/^(.*\/\/)?[^\/:]+[\/:]/, '');
-				let combo = repo.replace(/(\.git)/, '');
+                                let combo = repo.substring(0, repo.length - 4)
 				let split = combo.split('/');
 
 				if (split && split.length > 1) {
