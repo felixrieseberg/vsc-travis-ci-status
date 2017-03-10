@@ -17,5 +17,24 @@ However, you can easily override that setting. Simply open or create `./.vscode/
 }
 ```
 
+By default, this extension will request a status update from Travis every 60 seconds. You can easily override this by changing the your `./.vscode/settings.json` file.
+
+To disable polling entirely, you can use:
+
+```json
+{
+    "travis.statusPolling": false
+```
+
+or to change the polling interval, you can use:
+
+```json
+{
+    "travis.statusPollingInterval": 30
+}
+```
+
+Which will set the polling interval to every 30 seconds. It is recommended that you don't attempt to poll for status changes too often.
+
 ## License
 MIT, please see LICENSE for details. Copyright (c) 2015 Felix Rieseberg and Microsoft Corporation.

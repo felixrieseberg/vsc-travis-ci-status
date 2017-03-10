@@ -80,6 +80,16 @@
           "type": "string",
           "default": "",
           "description": "Travis pro github password for authentication"
+        },
+        "travis.statusPolling": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether build status should be polled"
+        },
+        "travis.statusPollingInterval": {
+          "type": "number",
+          "default": 60,
+          "description": "Number of seconds between status polling requests"
         }
       }
     }
