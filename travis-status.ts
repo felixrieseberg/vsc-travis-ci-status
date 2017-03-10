@@ -11,6 +11,16 @@ export default class TravisStatusIndicator {
 	private _useProxy: boolean = false;
 	private _proxyData = { host: null, port: null };
 
+	// Private variables for automatic status polling
+	private _statusPollingTimeout = null;
+	private _statusPolling: boolean = workspace.getConfiguration('travis').get<boolean>('statusPolling');
+	private _statusPollingInterval: number = workspace.getConfiguration('travis').get<number>('statusPollingInterval');
+
+	constructor() {
+		// Listen for changes to configuration
+		workspace.onDidChangeConfiguration(this.updateStatusPollingConfiguration.bind(this));
+	}
+
 	public updateStatus(): void {
 		if (!this._statusBarItem) {
 			this._statusBarItem = window.createStatusBarItem(StatusBarAlignment.Left);
@@ -63,10 +73,9 @@ export default class TravisStatusIndicator {
 		}
 
 		// Should the status be polled?
-		let pollStatusSettings = this.getPollStatusFromSettings();
-		if (pollStatusSettings.pollStatus === true) {
+		if (this._statusPolling === true) {
 			// Run the update function again in the specified number of seconds
-			setTimeout(this.updateStatus.bind(this), pollStatusSettings.pollStatusInterval * 1000);
+			this._statusPollingTimeout = setTimeout(this.updateStatus.bind(this), this._statusPollingInterval * 1000);
 		}
 	}
 
@@ -216,24 +225,24 @@ export default class TravisStatusIndicator {
 		}
 	}
 
-	// Get the pollStatus/pollStatusInterval from .vscode/settings.json
-	private getPollStatusFromSettings(): { pollStatus: boolean, pollStatusInterval: number } {
-		if (!workspace || !workspace.rootPath) return null;
+	// Updates the configuration if it changes
+	private updateStatusPollingConfiguration(): void {
+		// Get the status polling settings
+		let statusPolling = workspace.getConfiguration('travis').get<boolean>('statusPolling');
+		let statusPollingInterval = workspace.getConfiguration('travis').get<number>('statusPollingInterval');
 
-		let settingsFile = path.join(workspace.rootPath, '.vscode', 'settings.json');
+		// If the status polling settings have changed, clear the current setTimeout
+		if (statusPolling !== this._statusPolling || statusPollingInterval !== this._statusPollingInterval) {
+			clearTimeout(this._statusPollingTimeout);
 
-		try {
-			let settings = JSON.parse(fs.readFileSync(settingsFile, 'utf8'));
+			// Remember the new values
+			this._statusPolling = statusPolling;
+			this._statusPollingInterval = statusPollingInterval;
 
-			if (settings) {
-				let pollStatus = settings['travis.statusPolling'];
-				let pollStatusInterval = settings['travis.statusPollingInterval'];
-
-				return { pollStatus, pollStatusInterval };
+			// If still set to poll, start again now
+			if (statusPolling === true) {
+				this.updateStatus();
 			}
-		}
-		catch (err) {
-			return { pollStatus: false, pollStatusInterval: null };
 		}
 	}
 
