@@ -16,6 +16,13 @@ However, you can easily override that setting. Simply open or create `./.vscode/
     "travis.username": "atom"
 }
 ```
+If you are using `https://travis-ci.com/` add the following settings in `./.vscode/settings.json` :
+
+```json
+{
+     "travis.pro": true
+}
+```
 
 By default, this extension will request a status update from Travis every 60 seconds. You can easily override this by changing the your `./.vscode/settings.json` file.
 
