@@ -107,7 +107,7 @@
     "git-rev-2": "latest",
     "global-tunnel": "^1.2.0",
     "ini": "^1.3.4",
-    "open": "0.0.5",
+    "open": "7.0.0",
     "travis-ci": "^2.0.3"
   }
 }
